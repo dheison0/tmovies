@@ -1,3 +1,4 @@
+import logging
 from asyncio import gather
 from dataclasses import asdict
 from http import HTTPStatus
@@ -41,7 +42,13 @@ async def search_with_all(request: Request):
     query = request.args.get('query')
 
     async def searcher(e):
-        result, error = await e.search(query)
+        try:
+            result, error = await e.search(query)
+        except Exception as exception:
+            logging.error(
+                f'Error occured while searching for {query} on {e.title}',
+                exception)
+            result, error = [], 'exception occured while processing search request'
         return {'extractor': e.name, 'result': result, 'error': error}
 
     searchers = [searcher(e) for e in get_extractors()]
@@ -66,7 +73,17 @@ async def download(request: Request, extractor_name: str):
         return json(body={'error': f'extractor "{extractor_name}" not found'},
                     status=HTTPStatus.NOT_FOUND)
     url = request.args.get('url')
-    result, error = await extractor.download(url)
+    try:
+        result, error = await extractor.download(url)
+    except Exception as exception:
+        logging.error(
+            f'An exception occured while trying to process download page for url={url}',
+            exception)
+        return json(body={
+            'error':
+            f'an exception was occured while trying to handle download'
+        },
+                    status=HTTPStatus.INTERNAL_SERVER_ERROR)
     if error:
         return json(body={'error': f'extractor error: {error}'},
                     status=HTTPStatus.INTERNAL_SERVER_ERROR)

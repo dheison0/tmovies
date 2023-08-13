@@ -13,7 +13,7 @@ class SearchResult:
 
     def __post_init__(self):
         params = urlencode({'url': self.url})
-        self.api_path = f'/{self.extractor.lower()}/get?{params}'
+        self.api_path = f'/download/{self.extractor}?{params}'
 
 
 @dataclass
@@ -32,12 +32,9 @@ class DownloadResult:
 
 @dataclass
 class Extractor:
+    name: str
     title: str
     website_url: str
     # A function that receives a query followed by the page index(default: 1)
     search: Callable[[str, int], List[SearchResult]]
     download: Callable[[str], Tuple[DownloadResult, str | None]]
-    name: str = None
-
-    def __post_init(self):
-        self.name = self.name or self.__name__
