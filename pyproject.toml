@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "tmovies"
+version = "0.1.0"
+description = "Shadow torrent movies API based on extractors"
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+sanic = "^23.6.0"
+beautifulsoup4 = "^4.12.2"
+aiohttp = "^3.8.5"
+lxml = "^4.9.3"
+
+
+[tool.poetry.group.dev.dependencies]
+yapf = "^0.40.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
