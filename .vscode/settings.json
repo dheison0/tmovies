@@ -3,7 +3,8 @@
     "aiohttp",
     "boitorrent",
     "lxml",
-    "sanic"
+    "sanic",
+    "vingadorestorrent"
   ],
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"

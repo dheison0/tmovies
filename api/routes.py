@@ -40,13 +40,14 @@ async def search(request: Request, extractor_id: str):
     query = request.args.get("query")
     page = int(request.args.get("page", 1))
     try:
-        results = await extractor.search(query, page)
+        response = await extractor().search(query, page)
     except Exception as error:
+        logging.error("Err", error)
         return json(
             body={"error": f"extractor error: {error}"},
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
-    return json(body={"results": [asdict(i) for i in results]}, status=HTTPStatus.OK)
+    return json(body=asdict(response), status=HTTPStatus.OK)
 
 
 async def search_with_all(request: Request):

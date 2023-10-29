@@ -1,4 +1,4 @@
-from . import boitorrent
+from . import boitorrent, vingadorestorrent
 from .models import Extractor, ExtractorInfo
 
 
@@ -30,3 +30,4 @@ class Pool:
 
 pool = Pool()
 pool.add_extractor(boitorrent.BoiTorrent)
+pool.add_extractor(vingadorestorrent.VingadoresTorrent)
