@@ -7,84 +7,97 @@ from sanic import Sanic
 from sanic.request import Request
 from sanic.response import json
 
-from .extractors import get_extractor, get_extractors
+from .extractors import ExtractorNotFound, pool
 from .utils import check_queries
 
 
 def add_all(app: Sanic):
-    app.add_route(name='search_with_all',
-                  handler=check_queries(search_with_all, ['query']),
-                  uri='/search')
-    app.add_route(name='search_using',
-                  handler=check_queries(search, ['query']),
-                  uri='/search/<extractor_name>')
-    app.add_route(name='download_using',
-                  handler=check_queries(download, ['url']),
-                  uri='/download/<extractor_name>')
+    app.add_route(
+        name="search_with_all",
+        handler=check_queries(search_with_all, ["query"]),
+        uri="/search/all",
+    )
+    app.add_route(
+        name="search_using",
+        handler=check_queries(search, ["query"]),
+        uri="/search/<extractor_id>",
+    )
+    app.add_route(
+        name="download_using",
+        handler=check_queries(download, ["url"]),
+        uri="/download/<extractor_id>",
+    )
 
 
-async def search(request: Request, extractor_name: str):
-    extractor = get_extractor(extractor_name)
-    if extractor is None:
-        return json(body={'error': f'extractor "{extractor_name}" not found'},
-                    status=HTTPStatus.NOT_FOUND)
-    query = request.args.get('query')
-    page = int(request.args.get('page', 1))
-    results, error = await extractor.search(query, page)
-    if error is not None:
-        return json(body={'error': f'extractor error: {error}'},
-                    status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    return json(body={'results': [asdict(i) for i in results]},
-                status=HTTPStatus.OK)
+async def search(request: Request, extractor_id: str):
+    try:
+        extractor = pool.get_extractor(extractor_id)
+    except ExtractorNotFound:
+        return json(
+            body={"error": f'extractor "{extractor_id}" not found'},
+            status=HTTPStatus.NOT_FOUND,
+        )
+    query = request.args.get("query")
+    page = int(request.args.get("page", 1))
+    try:
+        results = await extractor.search(query, page)
+    except Exception as error:
+        return json(
+            body={"error": f"extractor error: {error}"},
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+    return json(body={"results": [asdict(i) for i in results]}, status=HTTPStatus.OK)
 
 
 async def search_with_all(request: Request):
-    query = request.args.get('query')
+    query = request.args.get("query")
 
     async def searcher(e):
+        extractor = pool.get_extractor(e.id)
+        result, error = [], None
         try:
-            result, error = await e.search(query)
+            result = await extractor().search(query)
         except Exception as exception:
-            logging.error(
-                f'Error occured while searching for {query} on {e.title}',
-                exception)
-            result, error = [], 'exception occured while processing search request'
-        return {'extractor': e.name, 'result': result, 'error': error}
+            error_message = (
+                f"Error raised while searching for '{query}' on '{e.title}'({e.id})"
+            )
+            logging.error(error_message, exception)
+            result, error = (
+                [],
+                f"{error_message}: {str(exception)}",
+            )
+        return {
+            "extractor_id": e.id,
+            "response": asdict(result) if result else None,
+            "error": error,
+        }
 
-    searchers = [searcher(e) for e in get_extractors()]
-    searchers_result = await gather(*searchers)
-    results = []
-    errors = []
-    for r in searchers_result:
-        if r['error']:
-            errors += [{'extractor': r['extractor'], 'error': r['error']}]
-        else:
-            results += r['result']
-    return json(body={
-        'errors': errors,
-        'results': [asdict(r) for r in results]
-    },
-                status=HTTPStatus.OK)
+    searchers = [searcher(e) for e in pool.get_all_extractors()]
+    searchers_results = await gather(*searchers)
+    return json(
+        body=searchers_results,
+        status=HTTPStatus.OK,
+    )
 
 
-async def download(request: Request, extractor_name: str):
-    extractor = get_extractor(extractor_name)
-    if extractor is None:
-        return json(body={'error': f'extractor "{extractor_name}" not found'},
-                    status=HTTPStatus.NOT_FOUND)
-    url = request.args.get('url')
+async def download(request: Request, extractor_id: str):
     try:
-        result, error = await extractor.download(url)
+        extractor = pool.get_extractor(extractor_id)
+    except ExtractorNotFound:
+        return json(
+            body={"error": f'extractor "{extractor_id}" not found'},
+            status=HTTPStatus.NOT_FOUND,
+        )
+    url = request.args.get("url")
+    try:
+        result = await extractor().download(url)
     except Exception as exception:
-        logging.error(
-            f'An exception occured while trying to process download page for url={url}',
-            exception)
-        return json(body={
-            'error':
-            f'an exception was occured while trying to handle download'
-        },
-                    status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    if error:
-        return json(body={'error': f'extractor error: {error}'},
-                    status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        error_message = (
+            f"Error raised while trying to get download information from url '{url}'"
+        )
+        logging.error(error_message, exception)
+        return json(
+            body={"error": f"{error_message}: {str(exception)}"},
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
     return json(body=asdict(result), status=HTTPStatus.OK)

@@ -1,27 +1,32 @@
-from typing import List
-
 from . import boitorrent
-from .models import Extractor
-
-EXTRACTORS = {}
+from .models import Extractor, ExtractorInfo
 
 
 class ExtractorNotFound(Exception):
-    pass
+    def __init__(self, id: str):
+        super().__init__(f"Extractor id '{id}' not found!")
 
 
-def add_extractor(m):
-    global EXTRACTORS
-    EXTRACTORS[m.NAME] = Extractor(m.NAME, m.TITLE, m.WEBSITE, m.search,
-                                   m.download)
+class Pool:
+    def __init__(self):
+        self.extractors = {}
+
+    def add_extractor(self, extractor: Extractor):
+        self.extractors[extractor.id] = extractor
+
+    def get_extractor(self, id: str) -> Extractor:
+        extractor = self.extractors.get(id)
+        if extractor:
+            return extractor
+        raise ExtractorNotFound(id)
+
+    def get_all_extractors(self) -> list[ExtractorInfo]:
+        extractors = [
+            ExtractorInfo(e.id, e.title, e.description, e.website)
+            for _, e in self.extractors.items()
+        ]
+        return extractors
 
 
-add_extractor(boitorrent)
-
-
-def get_extractor(name: str) -> Extractor | None:
-    return EXTRACTORS.get(name)
-
-
-def get_extractors() -> List[Extractor]:
-    return EXTRACTORS.values()
+pool = Pool()
+pool.add_extractor(boitorrent.BoiTorrent)

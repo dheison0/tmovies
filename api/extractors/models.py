@@ -7,13 +7,20 @@ from urllib.parse import urlencode
 class SearchResult:
     title: str
     url: str
-    extractor: str
+    extractor_id: str
     thumbnail: Optional[str]
-    api_path: str = None
+    path: str = None
 
     def __post_init__(self):
-        params = urlencode({'url': self.url})
-        self.api_path = f'/download/{self.extractor}?{params}'
+        params = urlencode({"url": self.url})
+        self.path = f"/download/{self.extractor_id}?{params}"
+
+
+@dataclass
+class ExtractorSearchResult:
+    results: list[SearchResult]
+    has_more: bool = False
+    page: int = 1
 
 
 @dataclass
@@ -30,11 +37,19 @@ class DownloadResult:
     sinopse: Optional[str]
 
 
-@dataclass
 class Extractor:
-    name: str
+    id: str
     title: str
-    website_url: str
+    description: str
+    website: str
     # A function that receives a query followed by the page index(default: 1)
-    search: Callable[[str, int], List[SearchResult]]
+    search: Callable[[str, int], ExtractorSearchResult]
     download: Callable[[str], Tuple[DownloadResult, str | None]]
+
+
+@dataclass
+class ExtractorInfo:
+    id: str
+    title: str
+    description: str
+    website: str

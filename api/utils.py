@@ -6,6 +6,11 @@ from sanic.request import Request
 from sanic.response import json
 
 
+class HTTPBadStatusCode(Exception):
+    def __init__(self, code: int):
+        super().__init__(f"website returner http code {code}")
+
+
 async def http_get(url: str, params: dict = {}) -> Tuple[int, str]:
     session = ClientSession()
     response = await session.get(url, params=params)
@@ -15,13 +20,13 @@ async def http_get(url: str, params: dict = {}) -> Tuple[int, str]:
 
 
 def check_queries(handler, queries: List[str]):
-
     async def checker(request: Request, *args, **kwargs):
         for query in queries:
             if request.args.get(query) is None:
                 return json(
-                    body={'error': f'url argument "{query}" not defined'},
-                    status=HTTPStatus.BAD_REQUEST)
+                    body={"error": f'url argument "{query}" not defined'},
+                    status=HTTPStatus.BAD_REQUEST,
+                )
         response = await handler(request, *args, **kwargs)
         return response
 
