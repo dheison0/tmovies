@@ -1,4 +1,4 @@
-from . import boitorrent, vingadorestorrent
+from . import boitorrent, nickfilmes, vingadorestorrent
 from .models import Extractor, ExtractorInfo
 
 
@@ -31,3 +31,4 @@ class Pool:
 pool = Pool()
 pool.add_extractor(boitorrent.BoiTorrent)
 pool.add_extractor(vingadorestorrent.VingadoresTorrent)
+pool.add_extractor(nickfilmes.NickFilmes)
