@@ -9,17 +9,18 @@
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script defer src="main.js"></script>
   </head>
   <body>
     <header>
       <h1>TMovies</h1>
     </header>
     <main>
-      <form>
-        <span>Pesquisar por:</span>
+      <div class="input-container">
         <input type="text" id="query"
-          placeholder="Digite os termos de pesquisa..." />
-      </form>
+          placeholder="Pesquisar por..." />
+        <button id="search">Pesquisar</button>
+      </div>
       <div class="empty-results">
         <ion-icon name="cafe-outline"></ion-icon>
         <h2>Sem resultados!</h2>
@@ -32,7 +33,8 @@
       </div>
     </main>
     <footer>
-      <a class="social" href><ion-icon name="logo-github"></ion-icon></a>
+      <a href="https://github.com/dheison0/tmovies"><ion-icon class="social"
+          name="logo-github"></ion-icon></a>
     </footer>
   </body>
 </html>
