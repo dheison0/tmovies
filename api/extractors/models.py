@@ -13,7 +13,7 @@ class SearchResult:
 
     def __post_init__(self):
         params = urlencode({"url": self.url})
-        self.path = f"/download/{self.extractor_id}?{params}"
+        self.path = f"/api/download/{self.extractor_id}?{params}"
 
 
 @dataclass

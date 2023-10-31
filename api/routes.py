@@ -15,17 +15,17 @@ def add_all(app: Sanic):
     app.add_route(
         name="search_with_all",
         handler=check_queries(search_with_all, ["query"]),
-        uri="/search/all",
+        uri="/api/search/all",
     )
     app.add_route(
         name="search_using",
         handler=check_queries(search, ["query"]),
-        uri="/search/<extractor_id>",
+        uri="/api/search/<extractor_id>",
     )
     app.add_route(
         name="download_using",
         handler=check_queries(download, ["url"]),
-        uri="/download/<extractor_id>",
+        uri="/api/download/<extractor_id>",
     )
 
 
