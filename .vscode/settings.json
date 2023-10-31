@@ -5,6 +5,7 @@
     "lxml",
     "nickfilmes",
     "sanic",
+    "TMOVIES",
     "vingadorestorrent"
   ],
   "[python]": {
