@@ -1,3 +1,16 @@
+/* Animations */
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Element modifications */
+
 * {
   margin: 0;
   border-width: 0;
@@ -15,14 +28,6 @@ h2 {
   font-size: 1.65rem;
 }
 
-body {
-  background-color: #282a36;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100vh;
-}
-
 header {
   display: flex;
   flex-direction: column;
@@ -32,15 +37,33 @@ header {
   border-radius: 0 0 1.2rem 1.2rem;
 }
 
-main {
+
+/* Element styles */
+
+/* Classes */
+.flex {
   display: flex;
+  flex: 1;
+}
+
+.hidden {
+  display: none;
+}
+
+.page-body {
   height: 100vh;
+  background-color: #282a36;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
+.content {
   flex-direction: column;
   align-items: center;
   padding: 0.8rem;
 }
 
-footer {
+.links {
   display: flex;
   justify-content: center;
   background-color: #111111;
@@ -48,14 +71,11 @@ footer {
 }
 
 .empty-results {
-  display: flex;
-  flex: 1;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: 1rem;
 }
-
 
 
 .empty-results ion-icon {
@@ -68,8 +88,6 @@ footer {
 }
 
 .loading {
-  display: flex;
-  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -82,20 +100,6 @@ footer {
   text-justify: center;
   font-size: 5rem;
   animation: rotate 750ms linear infinite;
-}
-
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.hidden {
-  display: none;
 }
 
 #query {
@@ -118,4 +122,53 @@ footer {
   padding: 0.6rem;
   border-radius: 0.4rem;
   background-color: #6272a4;
+}
+
+.search-results {
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+
+.server-title {
+  margin: 0.6rem;
+  border-bottom: 2px;
+  border-color: #6272a4;
+  border-style: solid;
+}
+
+.server-response {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.response {
+  display: flex;
+  flex-direction: column;
+  margin: 0.35rem;
+  padding: 0.84rem;
+  background-color: #44475a;
+  border-radius: 0.6rem;
+  align-items: center;
+}
+
+.response div {
+  background-color: rgb(86, 91, 117);
+  border-radius: 0.8rem;
+  margin-bottom: 0.5rem;
+  width: 156px;
+  height: 232px;
+}
+
+.response img {
+  border-radius: 0.8rem;
+  width: 156px;
+  height: 232px;
+}
+
+.response span {
+  align-items: center;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 400;
+  max-width: 9.5rem;
 }

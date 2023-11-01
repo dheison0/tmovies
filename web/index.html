@@ -11,28 +11,27 @@
       src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <script defer src="main.js"></script>
   </head>
-  <body>
+  <body class="flex page-body">
     <header>
       <h1>TMovies</h1>
     </header>
-    <main>
+    <main class="flex content">
       <div class="input-container">
         <input type="text" id="query"
           placeholder="Pesquisar por..." />
         <button id="search">Pesquisar</button>
       </div>
-      <div class="empty-results">
+      <div class="flex empty-results">
         <ion-icon name="cafe-outline"></ion-icon>
         <h2>Sem resultados!</h2>
       </div>
-      <div class="loading hidden">
+      <div class="flex loading hidden">
         <ion-icon name="reload-circle-outline"></ion-icon>
         <h2>Pesquisando...</h2>
       </div>
-      <div class="search-results hidden">
-      </div>
+      <div class="flex search-results hidden"></div>
     </main>
-    <footer>
+    <footer class="links">
       <a href="https://github.com/dheison0/tmovies"><ion-icon class="social"
           name="logo-github"></ion-icon></a>
     </footer>
