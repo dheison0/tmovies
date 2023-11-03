@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from os import cpu_count
 
 from sanic import Sanic, redirect
