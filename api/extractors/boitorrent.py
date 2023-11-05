@@ -11,7 +11,9 @@ class BoiTorrent(Extractor):
     website = "https://boitorrent.com"
 
     async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
-        status, html = await http_get(f"{self.website}/torrent-{query}/{page}")
+        status, html = await http_get(
+            f"{self.website}/torrent-{query.replace(' ', '_')}/{page}"
+        )
         if status != 200:
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")
