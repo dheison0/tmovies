@@ -39,19 +39,16 @@ class NickFilmes(Extractor):
         sinopse = sinopse_container.text.replace(
             sinopse_container.find("span").text, ""
         ).strip()
-        thumbnail = soup.find(
-            "img",
-            attrs={
-                "decoding": "async",
-                "width": "342",
-                "height": "513",
-            },
-        ).get("data-src")
+        thumbnail = soup.select_one(".elementor-widget-theme-post-content img").get(
+            "data-src"
+        )
         links = self.extract_links(soup)
         return DownloadResult(title, links, thumbnail, sinopse)
 
     def extract_links(self, soup: NavigableString):
-        links = []
+        # Disclaimer: If the title is repeated it's because the second one is with captions instead of multi-language
+
+        links = {}
         tag_list = soup.select('p[style="text-align: center;"]')
 
         def clean_title(t):
@@ -59,12 +56,17 @@ class NickFilmes(Extractor):
 
         if tag_list[0].find("a"):
             # This will be used if you're downloading a TV show
-            links = [
-                Link(title=clean_title(t.text), magnet=t.find("a").get("href"))
-                for t in tag_list
-                if t.find("a")
-            ]
-            return links
+            for t in tag_list:
+                if not t.find("a"):
+                    continue
+                title = clean_title(t.text)
+                magnet = t.find("a").get("href")
+                if not magnet:
+                    continue
+                elif title in links:
+                    title += " [Legendado]"
+                links[title] = Link(title, magnet)
+            return list(links.values())
 
         # How this part works:
         #  As the website won't create a container for every single link and their titles,
@@ -73,11 +75,10 @@ class NickFilmes(Extractor):
         #  two tags per iteration, extracting content of their and passing away
         i = 0
         while len(tag_list) - i >= 2:
-            links.append(
-                Link(
-                    title=clean_title(tag_list[i].text),
-                    magnet=tag_list[i + 1].find("a").get("href"),
-                )
-            )
+            title = clean_title(tag_list[i].text)
+            magnet = tag_list[i + 1].find("a").get("href")
+            if title in links:
+                title += " [Legendado]"
+            links[title] = Link(title, magnet)
             i += 2
-        return links
+        return list(links.values())
