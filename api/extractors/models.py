@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional
 from urllib.parse import urlencode
 
 
-@dataclass
+@dataclass(slots=True)
 class SearchResult:
     title: str
     url: str
@@ -16,20 +16,20 @@ class SearchResult:
         self.path = f"/api/download/{self.extractor_id}?{params}"
 
 
-@dataclass
+@dataclass(slots=True)
 class ExtractorSearchResult:
     results: list[SearchResult]
     has_more: bool = False
     page: int = 1
 
 
-@dataclass
+@dataclass(slots=True)
 class Link:
     title: str
     magnet: str
 
 
-@dataclass
+@dataclass(slots=True)
 class DownloadResult:
     title: str
     links: List[Link]
@@ -44,10 +44,10 @@ class Extractor:
     website: str
     # A function that receives a query followed by the page index(default: 1)
     search: Callable[[str, int], ExtractorSearchResult]
-    download: Callable[[str], Tuple[DownloadResult, str | None]]
+    download: Callable[[str], DownloadResult]
 
 
-@dataclass
+@dataclass(slots=True)
 class ExtractorInfo:
     id: str
     title: str
