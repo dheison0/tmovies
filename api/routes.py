@@ -42,7 +42,10 @@ async def search(request: Request, extractor_id: str):
     try:
         response = await extractor().search(query, page)
     except Exception as error:
-        logging.error("Err", error)
+        logging.error(
+            f"Failed to extract results of '{query}' from '{extractor_id}' page {page}",
+            error,
+        )
         return json(
             body={"error": f"extractor error: {error}"},
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -55,22 +58,15 @@ async def search_with_all(request: Request):
 
     async def searcher(e):
         extractor = pool.get_extractor(e.id)
-        result, error = [], None
         try:
             result = await extractor().search(query)
-        except Exception as exception:
-            error_message = (
-                f"Error raised while searching for '{query}' on '{e.title}'({e.id})"
-            )
-            logging.error(error_message, exception)
-            result, error = (
-                [],
-                f"{error_message}: {str(exception)}",
-            )
+        except Exception as error:
+            logging.error(f"Failed to search for '{query}' on '{e.id}'", error)
+            return
         return {
-            "extractor_id": e.id,
-            "response": asdict(result) if result else None,
-            "error": error,
+            "extractor_id": extractor.id,
+            "extractor_title": extractor.title,
+            "response": asdict(result),
         }
 
     searchers = [searcher(e) for e in pool.get_all_extractors()]
