@@ -22,7 +22,7 @@ data: dict[str, CacheData] = {}
 
 
 async def cache_request_middleware(request: Request) -> HTTPResponse | None:
-    if cache := data[request.raw_url]:
+    if cache := data.get(request.raw_url):
         if not cache.is_expired():
             return cache.response
         data.pop(request.raw_url)
