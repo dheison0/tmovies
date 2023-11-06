@@ -24,9 +24,7 @@ class BoiTorrent(Extractor):
             title = "-".join(raw_title.split("-")[:-1]).strip()
             url = raw_result.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
-            results += [
-                SearchResult(title, url, extractor_id=self.id, thumbnail=thumbnail)
-            ]
+            results.append(SearchResult(title, url, self.id, thumbnail))
         return ExtractorSearchResult(page=page, has_more=False, results=results)
 
     async def download(self, url: str) -> DownloadResult:
@@ -38,7 +36,8 @@ class BoiTorrent(Extractor):
         title = sinopse_container.find("strong").text.strip()
         sinopse = sinopse_container.find("p").text.replace(title, "").strip()
         thumbnail = soup.find("img", class_="img-responsive capa_imagem").get("src")
-        links = []
-        for a in soup.find("ul", class_="list-group").find_all("a"):
-            links += [Link(a.text.strip(), a.get("href"))]
+        links = [
+            Link(a.text.strip(), a.get("href"))
+            for a in soup.select('ul[class="list-group"] a')
+        ]
         return DownloadResult(title, links, thumbnail, sinopse)

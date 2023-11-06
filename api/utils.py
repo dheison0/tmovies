@@ -8,7 +8,7 @@ from sanic.response import json
 
 class HTTPBadStatusCode(Exception):
     def __init__(self, code: int):
-        super().__init__(f"website returner http code {code}")
+        super().__init__(f"website returned http code {code}")
 
 
 async def http_get(url: str, params: dict = {}) -> Tuple[int, str]:

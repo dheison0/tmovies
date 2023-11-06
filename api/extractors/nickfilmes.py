@@ -22,9 +22,7 @@ class NickFilmes(Extractor):
             title = raw_title.text.strip()
             url = raw_title.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
-            results += [
-                SearchResult(title, url, extractor_id=self.id, thumbnail=thumbnail)
-            ]
+            results.append(SearchResult(title, url, self.id, thumbnail))
         return ExtractorSearchResult(page=page, has_more=False, results=results)
 
     async def download(self, url: str) -> DownloadResult:
