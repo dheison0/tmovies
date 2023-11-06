@@ -1,3 +1,7 @@
+# Alterações do projeto
+
+  - [_] Adicionar extrator de recomendações.
+
 # Websites para adicionar extratores
 
   - [X] [BoiTorrent](https://boitorrent.com)
@@ -7,3 +11,8 @@
   - [_] [Filme Via Torrents](https://filmeviatorrents.org)
   - [_] [HDR Torrent](https://hdrtorrent.com)
   - [_] [Grátis Torrent](https://gratistorrent.com)
+
+
+# Alterações e correções em extratores
+  - BoiTorrent:
+    - [_] Verificar se existem mais páginas com resultados da pesquisa.
