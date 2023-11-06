@@ -1,4 +1,4 @@
-from . import boitorrent, nickfilmes, vingadorestorrent
+from . import boitorrent, nickfilmes
 from .models import Extractor, ExtractorInfo
 
 
@@ -15,8 +15,7 @@ class Pool:
         self.extractors[extractor.id] = extractor
 
     def get_extractor(self, id: str) -> Extractor:
-        extractor = self.extractors.get(id)
-        if extractor:
+        if extractor := self.extractors.get(id):
             return extractor
         raise ExtractorNotFound(id)
 
@@ -30,5 +29,4 @@ class Pool:
 
 pool = Pool()
 pool.add_extractor(boitorrent.BoiTorrent)
-pool.add_extractor(vingadorestorrent.VingadoresTorrent)
 pool.add_extractor(nickfilmes.NickFilmes)
