@@ -15,4 +15,4 @@
 
 # Alterações e correções em extratores
   - BoiTorrent:
-    - [_] Verificar se existem mais páginas com resultados da pesquisa.
+    - [X] Verificar se existem mais páginas com resultados da pesquisa.

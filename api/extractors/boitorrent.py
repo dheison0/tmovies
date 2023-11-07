@@ -17,6 +17,7 @@ class BoiTorrent(Extractor):
         if status != 200:
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")
+
         raw_results = soup.find_all("div", class_="row semelhantes")
         results = []
         for raw_result in raw_results:
@@ -25,7 +26,10 @@ class BoiTorrent(Extractor):
             url = raw_result.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
             results.append(SearchResult(title, url, self.id, thumbnail))
-        return ExtractorSearchResult(page=page, has_more=False, results=results)
+
+        pagination_items = soup.select('ul[class="pagination"] li')[1:-1]
+        has_more = len(pagination_items) > page
+        return ExtractorSearchResult(results, has_more, page)
 
     async def download(self, url: str) -> DownloadResult:
         status, html = await http_get(url)
