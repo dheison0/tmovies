@@ -4,7 +4,7 @@ const empty_results = document.querySelector('.empty-results')
 const loading_animation = document.querySelector('.loading')
 const results_container = document.querySelector('.search-results')
 
-const hidden_element = (e) => e.classList.add('hidden')
+const hide_element = (e) => e.classList.add('hidden')
 const show_element = (e) => e.classList.remove('hidden')
 
 const ResponseItem = ({ title, thumbnail, path }) => {
@@ -35,20 +35,20 @@ search.onclick = () => {
     const html = data.map(extractor_result => {
       if (extractor_result.error || extractor_result.response.results.length === 0) return
       const responseItems = extractor_result.response.results.map(ResponseItem)
-      return ResponseContainer({ title: extractor_result.extractor_id, children: responseItems.join("\n") })
+      return ResponseContainer({ title: extractor_result.extractor_title, children: responseItems.join("\n") })
     })
     if (html.length === 0) {
-      hidden_element(loading_animation)
+      hide_element(loading_animation)
       show_element(empty_results)
       return
     }
     results_container.innerHTML = html.join("\n")
-    hidden_element(loading_animation)
+    hide_element(loading_animation)
     show_element(results_container)
   }
 
-  hidden_element(empty_results)
-  hidden_element(results_container)
+  hide_element(empty_results)
+  hide_element(results_container)
   show_element(loading_animation)
   fetch('/api/search/all?query=' + query.value.trim())
     .then(r => r.json())
