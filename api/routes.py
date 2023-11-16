@@ -72,7 +72,7 @@ async def search_with_all(request: Request):
     searchers = [searcher(e) for e in pool.get_all_extractors()]
     searchers_results = await gather(*searchers)
     return json(
-        body=searchers_results,
+        body=list(filter(lambda i: i is not None, searchers_results)),
         status=HTTPStatus.OK,
     )
 

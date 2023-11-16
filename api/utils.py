@@ -13,7 +13,7 @@ class HTTPBadStatusCode(Exception):
 
 async def http_get(url: str, params: dict = {}) -> Tuple[int, str]:
     session = ClientSession()
-    response = await session.get(url, params=params)
+    response = await session.get(url, params=params, timeout=5)
     text = await response.text()
     await session.close()
     return response.status, text
