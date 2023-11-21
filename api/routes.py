@@ -40,15 +40,25 @@ async def recommendations_from_all(request: Request):
             data = await pool.get_extractor(extractor.id)().recommendations()
         except Exception as error:
             logging.error(f"Error occurred while trying to retrieve recommendations from {extractor.id}", error)
-            return None
-        return {'extractor': asdict(extractor), 'recommendations': [asdict(d) for d in data]}
+            return []
+        return data
 
     extractors = [
         extract(e)
         for e in pool.get_all_extractors()
     ]
     recommendations = await gather(*extractors)
-    return json(list(filter(lambda i: i is not None, recommendations)))
+    titles = []
+    filtered_recommendations = []
+    for r in recommendations:
+        for i in r:
+            title = i.title.lower()
+            if title in titles:
+                continue
+            titles.append(title)
+            filtered_recommendations.append(asdict(i))
+    filtered_recommendations.sort(key=lambda i: i['title'])
+    return json(filtered_recommendations)
 
 
 async def search(request: Request, extractor_id: str):
