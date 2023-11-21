@@ -10,6 +10,22 @@ class NickFilmes(Extractor):
     description = "O Site NickFilmes.net é apenas um agregador de links, nenhum arquivo está hospedado sob nosso domínio."
     website = "https://nickfilmes.net"
 
+    async def recommendations(self) -> list[SearchResult]:
+        status, html = await http_get(self.website)
+        if status != 200:
+            raise HTTPBadStatusCode(status)
+
+        soup = BeautifulSoup(html, "lxml")
+        return [
+            SearchResult(
+                title=c.find('h3', class_="elementor-post__title").text.strip(),
+                url=c.find('a').get('href'),
+                thumbnail=c.find('img').get('src'),
+                extractor_id=self.id
+            )
+            for c in soup.find_all('article', class_='elementor-post')
+        ]
+
     async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
         status, html = await http_get(f"{self.website}/?s={query}")
         if status != 200:
