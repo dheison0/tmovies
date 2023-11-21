@@ -20,7 +20,7 @@ class NickFilmes(Extractor):
             SearchResult(
                 title=c.find('h3', class_="elementor-post__title").text.strip(),
                 url=c.find('a').get('href'),
-                thumbnail=c.find('img').get('src'),
+                thumbnail=c.find('img').get('data-srcset'),
                 extractor_id=self.id
             )
             for c in soup.find_all('article', class_='elementor-post')
