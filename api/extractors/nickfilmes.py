@@ -18,12 +18,14 @@ class NickFilmes(Extractor):
         soup = BeautifulSoup(html, "lxml")
         return [
             SearchResult(
-                title=c.find('h3', class_="elementor-post__title").text.strip(),
-                url=c.find('a').get('href'),
-                thumbnail=c.find('img').get('data-srcset'),
-                extractor_id=self.id
+                title=self.clean_title(
+                    c.find("h3", class_="elementor-post__title").text
+                ),
+                url=c.find("a").get("href"),
+                thumbnail=c.find("img").get("data-srcset").split()[0],
+                extractor_id=self.id,
             )
-            for c in soup.find_all('article', class_='elementor-post')
+            for c in soup.find_all("article", class_="elementor-post")
         ]
 
     async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
@@ -35,7 +37,7 @@ class NickFilmes(Extractor):
         results = []
         for raw_result in raw_results:
             raw_title = raw_result.find("h3", class_="elementor-post__title")
-            title = raw_title.text.strip()
+            title = self.clean_title(raw_title.text)
             url = raw_title.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
             results.append(SearchResult(title, url, self.id, thumbnail))
@@ -96,3 +98,10 @@ class NickFilmes(Extractor):
             links[title] = Link(title, magnet)
             i += 2
         return list(links.values())
+
+    def clean_title(self, title):
+        title = title.strip()
+        title_parts = title.lower().split()
+        torrent_position = title_parts.index("torrent")
+        new_title = title.split()[:torrent_position]
+        return " ".join(new_title)
