@@ -42,7 +42,8 @@ class Extractor:
     title: str
     description: str
     website: str
-    # A function that receives a query followed by the page index(default: 1)
+
+    recommendations: Callable[[], list[SearchResult]]
     search: Callable[[str, int], ExtractorSearchResult]
     download: Callable[[str], DownloadResult]
 

@@ -13,6 +13,11 @@ from .utils import check_queries
 
 def add_all(app: Sanic):
     app.add_route(
+        name="recommendations",
+        handler=recommendations_from_all,
+        uri="/api/recommendations"
+    )
+    app.add_route(
         name="search_with_all",
         handler=check_queries(search_with_all, ["query"]),
         uri="/api/search/all",
@@ -27,6 +32,33 @@ def add_all(app: Sanic):
         handler=check_queries(download, ["url"]),
         uri="/api/download/<extractor_id>",
     )
+
+
+async def recommendations_from_all(request: Request):
+    async def extract(extractor):
+        try:
+            data = await pool.get_extractor(extractor.id)().recommendations()
+        except Exception as error:
+            logging.error(f"Error occurred while trying to retrieve recommendations from {extractor.id}", error)
+            return []
+        return data
+
+    extractors = [
+        extract(e)
+        for e in pool.get_all_extractors()
+    ]
+    recommendations = await gather(*extractors)
+    titles = []
+    filtered_recommendations = []
+    for r in recommendations:
+        for i in r:
+            title = i.title.lower()
+            if title in titles:
+                continue
+            titles.append(title)
+            filtered_recommendations.append(asdict(i))
+    filtered_recommendations.sort(key=lambda i: i['title'])
+    return json(filtered_recommendations)
 
 
 async def search(request: Request, extractor_id: str):

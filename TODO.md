@@ -1,6 +1,6 @@
 # Alterações do projeto
 
-  - [_] Adicionar extrator de recomendações.
+  - [X] Adicionar extrator de recomendações.
 
 # Websites para adicionar extratores
 
