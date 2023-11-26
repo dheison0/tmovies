@@ -22,15 +22,12 @@
           placeholder="Pesquisar por..." />
         <button id="search">Pesquisar</button>
       </div>
-      <div class="flex empty-results">
-        <ion-icon name="cafe-outline"></ion-icon>
-        <h2>Sem resultados!</h2>
+      <div class="flex js-content" style="flex-direction: column;">
+        <div class="flex loading">
+          <ion-icon name="reload-circle-outline"></ion-icon>
+          <h2>Carregando...</h2>
+        </div>
       </div>
-      <div class="flex loading hidden">
-        <ion-icon name="reload-circle-outline"></ion-icon>
-        <h2>Pesquisando...</h2>
-      </div>
-      <div class="flex search-results hidden"></div>
     </main>
     <footer class="links">
       <a href="https://github.com/dheison0/tmovies"><ion-icon class="social"
