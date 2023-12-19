@@ -31,7 +31,7 @@ const ResponseContainer = ({ title, children }) => {
 const ResponseItem = ({ title, thumbnail, path }) => {
   return `
   <div class="response">
-    <a href="/web/download.html?path=${path}">
+    <a href="/download.html?path=${path}">
       <div><img loading="lazy" src="${thumbnail}" /></div>
       <span class="flex">${title}</span>
     </a>
