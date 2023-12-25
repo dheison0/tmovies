@@ -18,16 +18,16 @@ class BoiTorrent(Extractor):
         def clear_title(t):
             title = t.strip()
             pieces = title.lower().split()
-            torrent_location = pieces.index("torrent")
+            torrent_location = pieces.index('torrent')
             return " ".join(title.split()[:torrent_location])
 
         soup = BeautifulSoup(html, "lxml")
         return [
             SearchResult(
-                title=clear_title(c.find("h2").text),
-                url=c.find("a").get("href"),
-                thumbnail=c.find("img").get("src"),
-                extractor_id=self.id,
+                title=clear_title(c.find('h2').text),
+                url=c.find('a').get('href'),
+                thumbnail=c.find('img').get('src'),
+                extractor_id=self.id
             )
             for c in soup.select('li[class="capa_lista text-center"]')
         ]
@@ -64,6 +64,6 @@ class BoiTorrent(Extractor):
         thumbnail = soup.find("img", class_="img-responsive capa_imagem").get("src")
         links = [
             Link(a.text.strip(), a.get("href"))
-            for a in soup.select('p[class="list-group"] a')
+            for a in soup.select('ul[class="list-group"] a')
         ]
         return DownloadResult(title, links, thumbnail, sinopse)
