@@ -1,6 +1,7 @@
 const query = document.querySelector('#query')
 const search = document.querySelector('#search')
 const content = document.querySelector('.js-content')
+const recommendationsURL = new URL('/api/recommendations', 'http://dheisom.vps-kinghost.net:8899')
 
 const EmptyResults = ({ message = "Sem resultados!" }) => {
   content.innerHTML = `
@@ -31,7 +32,7 @@ const ResponseContainer = ({ title, children }) => {
 const ResponseItem = ({ title, thumbnail, path }) => {
   return `
   <div class="response">
-    <a href="/download.html?path=${path}">
+    <a href="/download?path=${path}">
       <div><img loading="lazy" src="${thumbnail}" /></div>
       <span class="flex">${title}</span>
     </a>
@@ -60,16 +61,24 @@ search.onclick = () => {
     }
     SearchResults(html)
   }
-
-  fetch('/api/search/all?query=' + query.value.trim())
+  const url = new URL('/api/search/all?query=' + query.value.trim(), 'http://dheisom.vps-kinghost.net:8899')
+  fetch(url.href, { mode: 'no-cors' })
     .then(r => r.json())
     .then(onResponse)
     .catch(e => console.error(e))
 }
 
 
-query.focus()
-fetch('/api/recommendations')
-  .then(r => r.json())
-  .then(r => SearchResults(RenderResponseItems({ title: "Recomendações", items: r })))
-  .catch(e => console.error(e))
+const recommendationsLoad = async () => {
+  query.focus()
+  let data = []
+  try {
+    const response = await fetch(recommendationsURL.href, { mode: 'no-cors' })
+    data = await response.json()
+  } catch (error) {
+    return console.error(error)
+  }
+  SearchResults(RenderResponseItems({ title: "Recomendações", items: data }))
+}
+
+recommendationsLoad()

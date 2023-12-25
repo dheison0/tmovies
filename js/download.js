@@ -1,8 +1,7 @@
 const content = document.querySelector(".content")
-const url = new URL(window.location.href)
-const path = url.searchParams.get('path')
+const path = URL(window.location.href).searchParams.get('path')
 if (path === '' || !path) {
-  window.location = '/web'
+  window.location = '/tmovies'
 }
 
 const onResponse = (r) => {
@@ -21,8 +20,8 @@ const onResponse = (r) => {
   `
 }
 
-
-fetch(path)
+const url = new URL(path, "http://dheisom.vps-kinghost.net:8899")
+fetch(url.href, { mode: 'no-cors' })
   .then(r => r.json())
   .then(onResponse)
   .catch(e => console.error(e))
