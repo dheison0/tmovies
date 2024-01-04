@@ -9,7 +9,8 @@
     "vingadorestorrent"
   ],
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "python.formatting.provider": "none"
+  "python.formatting.provider": "none",
+  "editor.tabSize": 4
 }

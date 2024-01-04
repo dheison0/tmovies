@@ -1,7 +1,13 @@
 from bs4 import BeautifulSoup
 
+from ..models.responses import (
+    DownloadResult,
+    Extractor,
+    ExtractorSearchResult,
+    Link,
+    SearchResult,
+)
 from ..utils import HTTPBadStatusCode, http_get
-from .models import DownloadResult, Extractor, ExtractorSearchResult, Link, SearchResult
 
 
 class MaisFilmesESeries(Extractor):
@@ -10,21 +16,21 @@ class MaisFilmesESeries(Extractor):
     description = "Filmes e Series para download gratuito."
     website = "https://maisfilmeseseries.com"
 
-    async def recommendations(self) -> list[SearchResult]:
+    async def recommendations(self, little_response) -> list[SearchResult]:
         status, html = await http_get(self.website)
         if status != 200:
             raise HTTPBadStatusCode(status)
 
         soup = BeautifulSoup(html, "lxml")
-        return [
-            SearchResult(
-                title=c.find('div', class_="titulo_post").text.strip(),
-                url=c.find('a').get('href'),
-                thumbnail=c.find('img').get('src'),
-                extractor_id=self.id
+        for c in soup.select('div[class="post"]'):
+            await little_response(
+                SearchResult(
+                    title=c.find("div", class_="titulo_post").text.strip(),
+                    url=c.find("a").get("href"),
+                    thumbnail=c.find("img").get("src"),
+                    extractor_id=self.id,
+                )
             )
-            for c in soup.select('div[class="post"]')
-        ]
 
     async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
         status, html = await http_get(

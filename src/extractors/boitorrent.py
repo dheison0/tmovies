@@ -1,7 +1,13 @@
 from bs4 import BeautifulSoup
 
+from ..models.responses import (
+    DownloadResult,
+    Extractor,
+    ExtractorSearchResult,
+    Link,
+    SearchResult,
+)
 from ..utils import HTTPBadStatusCode, http_get
-from .models import DownloadResult, Extractor, ExtractorSearchResult, Link, SearchResult
 
 
 class BoiTorrent(Extractor):
@@ -10,7 +16,7 @@ class BoiTorrent(Extractor):
     description = "Download Lista de Últimos Lançamentos por torrent grátis com qualidade e velocidade diretamente pelo magnet link (Boi Torrent)."
     website = "https://boitorrent.com"
 
-    async def recommendations(self) -> list[SearchResult]:
+    async def recommendations(self, little_response) -> list[SearchResult]:
         status, html = await http_get(self.website)
         if status != 200:
             raise HTTPBadStatusCode(status)
@@ -18,19 +24,19 @@ class BoiTorrent(Extractor):
         def clear_title(t):
             title = t.strip()
             pieces = title.lower().split()
-            torrent_location = pieces.index('torrent')
+            torrent_location = pieces.index("torrent")
             return " ".join(title.split()[:torrent_location])
 
         soup = BeautifulSoup(html, "lxml")
-        return [
-            SearchResult(
-                title=clear_title(c.find('h2').text),
-                url=c.find('a').get('href'),
-                thumbnail=c.find('img').get('src'),
-                extractor_id=self.id
+        for c in soup.select('li[class="capa_lista text-center"]'):
+            await little_response(
+                SearchResult(
+                    title=clear_title(c.find("h2").text),
+                    url=c.find("a").get("href"),
+                    thumbnail=c.find("img").get("src"),
+                    extractor_id=self.id,
+                )
             )
-            for c in soup.select('li[class="capa_lista text-center"]')
-        ]
 
     async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
         status, html = await http_get(

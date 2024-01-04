@@ -1,5 +1,5 @@
-from . import boitorrent, maisfilmeseseries, nickfilmes
-from .models import Extractor, ExtractorInfo
+from ..models.responses import Extractor, ExtractorInfo
+from . import boitorrent, maisfilmeseseries
 
 
 class ExtractorNotFound(Exception):
@@ -20,14 +20,11 @@ class Pool:
         raise ExtractorNotFound(id)
 
     def get_all_extractors(self) -> list[ExtractorInfo]:
-        extractors = [
-            ExtractorInfo(e.id, e.title, e.description, e.website)
-            for _, e in self.extractors.items()
-        ]
-        return extractors
+        return self.extractors.values()
 
 
 pool = Pool()
 pool.add_extractor(boitorrent.BoiTorrent)
-pool.add_extractor(nickfilmes.NickFilmes)
+# pool.add_extractor(nickfilmes.NickFilmes)
 pool.add_extractor(maisfilmeseseries.MaisFilmesESeries)
+# pool.add_extractor(comandoto.ComandoTo)
