@@ -37,13 +37,22 @@ async def recommendations(request: Request):
     await gather(*[extract(e) for e in all_extractors])
 
 
-@bp.route("/search")
-async def search(request: Request):
+@bp.route("/search", name="Search from all")
+@bp.route("/search/<extractor:str>", name="Search from specific")
+async def search(request: Request, extractor: str = ""):
     query = request.args.get("q")
     if query is None or query.strip() == "":
         return json(
             {"error": "invalied query(q) parameter"}, status=HTTPStatus.BAD_REQUEST
         )
+    if extractor:
+        try:
+            search_extractors = [extractors.pool.get_extractor(extractor)]
+        except extractors.ExtractorNotFound:
+            return json({"error": "extractor not found"})
+    else:
+        search_extractors = extractors.pool.get_all_extractors()
+
     response = await request.respond()
 
     async def searcher(e):
@@ -59,7 +68,7 @@ async def search(request: Request):
             )
         )
 
-    searchers = [searcher(e) for e in extractors.pool.get_all_extractors()]
+    searchers = [searcher(e) for e in search_extractors]
     await gather(*searchers)
 
 
