@@ -1,7 +1,10 @@
+from urllib.parse import urljoin
+
 from bs4 import BeautifulSoup, NavigableString
 
+from ..models.classes import Extractor
+from ..models.responses import DownloadResult, Link, SearchResult
 from ..utils import HTTPBadStatusCode, http_get
-from .models import DownloadResult, Extractor, ExtractorSearchResult, Link, SearchResult
 
 
 class NickFilmes(Extractor):
@@ -10,25 +13,23 @@ class NickFilmes(Extractor):
     description = "O Site NickFilmes.net é apenas um agregador de links, nenhum arquivo está hospedado sob nosso domínio."
     website = "https://nickfilmes.net"
 
-    async def recommendations(self) -> list[SearchResult]:
+    async def recommendations(self):
         status, html = await http_get(self.website)
         if status != 200:
             raise HTTPBadStatusCode(status)
 
         soup = BeautifulSoup(html, "lxml")
-        return [
-            SearchResult(
+        for c in soup.find_all("article", class_="elementor-post"):
+            yield SearchResult(
                 title=self.clean_title(
                     c.find("h3", class_="elementor-post__title").text
                 ),
                 url=c.find("a").get("href"),
                 thumbnail=c.find("img").get("data-srcset").split()[0],
-                extractor_id=self.id,
+                extractor=self.id,
             )
-            for c in soup.find_all("article", class_="elementor-post")
-        ]
 
-    async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
+    async def search(self, query: str, page: int = 1) -> list[SearchResult]:
         status, html = await http_get(f"{self.website}/?s={query}")
         if status != 200:
             raise HTTPBadStatusCode(status)
@@ -41,10 +42,11 @@ class NickFilmes(Extractor):
             url = raw_title.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
             results.append(SearchResult(title, url, self.id, thumbnail))
-        return ExtractorSearchResult(page=page, has_more=False, results=results)
 
-    async def download(self, url: str) -> DownloadResult:
-        status, html = await http_get(url)
+        return results
+
+    async def download(self, path: str) -> DownloadResult:
+        status, html = await http_get(urljoin(self.website, path))
         if status != 200:
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")

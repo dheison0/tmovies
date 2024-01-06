@@ -15,7 +15,7 @@ bp = Blueprint("v2-routes")
 
 @bp.route("/recommends")
 async def recommendations(request: Request):
-    extractors = extractors.pool.get_all_extractors()
+    all_extractors = extractors.pool.get_all_extractors()
     response = await request.respond()
 
     sent_titles = set()
@@ -34,8 +34,7 @@ async def recommendations(request: Request):
                 error,
             )
 
-    extractors = [extract(e) for e in extractors]
-    await gather(*extractors)
+    await gather(*[extract(e) for e in all_extractors])
 
 
 @bp.route("/search")
