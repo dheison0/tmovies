@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 
 @dataclass(slots=True)
@@ -9,11 +9,17 @@ class SearchResult:
     url: str
     extractor: str
     thumbnail: Optional[str]
-    path: str = None
+    next: str = None
 
     def __post_init__(self):
-        params = urlencode({"url": self.url})
-        self.path = f"/api/download/{self.extractor_id}?{params}"
+        parsed_url = urlparse(self.url)
+        params = urlencode(
+            {
+                "path": parsed_url.path
+                + (f"?{parsed_url.params}" if parsed_url.params else "")
+            }
+        )
+        self.next = f"/download/{self.extractor}?{params}"
 
 
 @dataclass(slots=True)

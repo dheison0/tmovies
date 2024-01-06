@@ -8,25 +8,29 @@ from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import json
 
-from ..extractors import ExtractorNotFound, pool
+from .. import extractors
 
 bp = Blueprint("v2-routes")
 
 
 @bp.route("/recommends")
 async def recommendations(request: Request):
-    extractors = pool.get_all_extractors()
+    extractors = extractors.pool.get_all_extractors()
     response = await request.respond()
 
-    async def little_response(data):
-        await response.send(json_dump(asdict(data)))
+    sent_titles = set()
 
     async def extract(extractor):
         try:
-            await extractor().recommendations(little_response)
+            async for r in extractor().recommendations():
+                old_size = len(sent_titles)
+                sent_titles.add(r.title.lower())
+                new_size = len(sent_titles)
+                if old_size != new_size:
+                    await response.send(json_dump(asdict(r)))
         except Exception as error:
             logging.error(
-                f"Error occurred while trying to retrieve recommendations from {extractor.id}",
+                f"Error retrieving recommendations from {extractor.title}",
                 error,
             )
 
@@ -36,44 +40,45 @@ async def recommendations(request: Request):
 
 @bp.route("/search")
 async def search(request: Request):
-    query = request.args.get("query")
+    query = request.args.get("q")
+    if query is None or query.strip() == "":
+        return json(
+            {"error": "invalied query(q) parameter"}, status=HTTPStatus.BAD_REQUEST
+        )
+    response = await request.respond()
 
     async def searcher(e):
-        extractor = pool.get_extractor(e.id)
+        extractor = extractors.pool.get_extractor(e.id)
         try:
             result = await extractor().search(query)
         except Exception as error:
             logging.error(f"Failed to search for '{query}' on '{e.id}'", error)
             return
-        return {
-            "extractor_id": extractor.id,
-            "extractor_title": extractor.title,
-            "response": asdict(result),
-        }
+        await response.send(
+            json_dump(
+                {"extractor": extractor.title, "results": [asdict(r) for r in result]}
+            )
+        )
 
-    searchers = [searcher(e) for e in pool.get_all_extractors()]
-    searchers_results = await gather(*searchers)
-    return json(
-        body=list(filter(lambda i: i is not None, searchers_results)),
-        status=HTTPStatus.OK,
-    )
+    searchers = [searcher(e) for e in extractors.pool.get_all_extractors()]
+    await gather(*searchers)
 
 
-@bp.route("/download")
+@bp.route("/download/<extractor_id:str>")
 async def download(request: Request, extractor_id: str):
     try:
-        extractor = pool.get_extractor(extractor_id)
-    except ExtractorNotFound:
+        extractor = extractors.pool.get_extractor(extractor_id)
+    except extractors.ExtractorNotFound:
         return json(
             body={"error": f'extractor "{extractor_id}" not found'},
             status=HTTPStatus.NOT_FOUND,
         )
-    url = request.args.get("url")
+    path = request.args.get("path")
     try:
-        result = await extractor().download(url)
+        result = await extractor().download(path)
     except Exception as exception:
         error_message = (
-            f"Error raised while trying to get download information from url '{url}'"
+            f"Error getting download information from {extractor.title} {path}"
         )
         logging.error(error_message, exception)
         return json(

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import AsyncGenerator, Callable
 
 from .responses import DownloadResult, SearchResult
 
@@ -9,6 +9,6 @@ class Extractor:
     description: str
     website: str
 
-    recommendations: Callable[[Callable[[SearchResult]]]]
+    recommendations: AsyncGenerator
     search: Callable[[str, int], list[SearchResult]]
     download: Callable[[str], DownloadResult]

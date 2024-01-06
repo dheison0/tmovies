@@ -1,4 +1,4 @@
-from ..models.responses import Extractor, ExtractorInfo
+from ..models.classes import Extractor
 from . import boitorrent, maisfilmeseseries
 
 
@@ -19,7 +19,7 @@ class Pool:
             return extractor
         raise ExtractorNotFound(id)
 
-    def get_all_extractors(self) -> list[ExtractorInfo]:
+    def get_all_extractors(self) -> list[Extractor]:
         return self.extractors.values()
 
 

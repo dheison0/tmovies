@@ -1,12 +1,9 @@
+from urllib.parse import urljoin
+
 from bs4 import BeautifulSoup
 
-from ..models.responses import (
-    DownloadResult,
-    Extractor,
-    ExtractorSearchResult,
-    Link,
-    SearchResult,
-)
+from ..models.classes import Extractor
+from ..models.responses import DownloadResult, Link, SearchResult
 from ..utils import HTTPBadStatusCode, http_get
 
 
@@ -16,23 +13,21 @@ class MaisFilmesESeries(Extractor):
     description = "Filmes e Series para download gratuito."
     website = "https://maisfilmeseseries.com"
 
-    async def recommendations(self, little_response) -> list[SearchResult]:
+    async def recommendations(self) -> list[SearchResult]:
         status, html = await http_get(self.website)
         if status != 200:
             raise HTTPBadStatusCode(status)
 
         soup = BeautifulSoup(html, "lxml")
         for c in soup.select('div[class="post"]'):
-            await little_response(
-                SearchResult(
-                    title=c.find("div", class_="titulo_post").text.strip(),
-                    url=c.find("a").get("href"),
-                    thumbnail=c.find("img").get("src"),
-                    extractor_id=self.id,
-                )
+            yield SearchResult(
+                title=c.find("div", class_="titulo_post").text.strip(),
+                url=c.find("a").get("href"),
+                thumbnail=c.find("img").get("src"),
+                extractor=self.id,
             )
 
-    async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
+    async def search(self, query: str, page: int = 1) -> SearchResult:
         status, html = await http_get(
             f"{self.website}/{query.replace(' ', '_')}/pagina/{page}/"
         )
@@ -48,12 +43,10 @@ class MaisFilmesESeries(Extractor):
             thumbnail = raw_result.find("img").get("src")
             results.append(SearchResult(title, url, self.id, thumbnail))
 
-        pagination_items = soup.select('div[class="paginacao text-center"] ul li')[1:-1]
-        has_more = len(pagination_items) > page
-        return ExtractorSearchResult(results, has_more, page)
+        return results
 
-    async def download(self, url: str) -> DownloadResult:
-        status, html = await http_get(url)
+    async def download(self, path: str) -> DownloadResult:
+        status, html = await http_get(urljoin(self.website, path))
         if status != 200:
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")

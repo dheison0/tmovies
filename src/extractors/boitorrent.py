@@ -1,12 +1,9 @@
+from urllib.parse import urljoin
+
 from bs4 import BeautifulSoup
 
-from ..models.responses import (
-    DownloadResult,
-    Extractor,
-    ExtractorSearchResult,
-    Link,
-    SearchResult,
-)
+from ..models.classes import Extractor
+from ..models.responses import DownloadResult, Link, SearchResult
 from ..utils import HTTPBadStatusCode, http_get
 
 
@@ -16,7 +13,7 @@ class BoiTorrent(Extractor):
     description = "Download Lista de Últimos Lançamentos por torrent grátis com qualidade e velocidade diretamente pelo magnet link (Boi Torrent)."
     website = "https://boitorrent.com"
 
-    async def recommendations(self, little_response) -> list[SearchResult]:
+    async def recommendations(self):
         status, html = await http_get(self.website)
         if status != 200:
             raise HTTPBadStatusCode(status)
@@ -29,16 +26,14 @@ class BoiTorrent(Extractor):
 
         soup = BeautifulSoup(html, "lxml")
         for c in soup.select('li[class="capa_lista text-center"]'):
-            await little_response(
-                SearchResult(
-                    title=clear_title(c.find("h2").text),
-                    url=c.find("a").get("href"),
-                    thumbnail=c.find("img").get("src"),
-                    extractor_id=self.id,
-                )
+            yield SearchResult(
+                title=clear_title(c.find("h2").text),
+                url=c.find("a").get("href"),
+                thumbnail=c.find("img").get("src"),
+                extractor=self.id,
             )
 
-    async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
+    async def search(self, query: str, page: int = 1) -> SearchResult:
         status, html = await http_get(
             f"{self.website}/torrent-{query.replace(' ', '_')}/{page}"
         )
@@ -55,12 +50,10 @@ class BoiTorrent(Extractor):
             thumbnail = raw_result.find("img").get("src")
             results.append(SearchResult(title, url, self.id, thumbnail))
 
-        pagination_items = soup.select('ul[class="pagination"] li')[1:-1]
-        has_more = len(pagination_items) > page
-        return ExtractorSearchResult(results, has_more, page)
+        return results
 
-    async def download(self, url: str) -> DownloadResult:
-        status, html = await http_get(url)
+    async def download(self, path: str) -> DownloadResult:
+        status, html = await http_get(urljoin(self.website, path))
         if status != 200:
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")
