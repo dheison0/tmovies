@@ -19,15 +19,10 @@ async def http_get(url: str, params: dict = {}) -> Tuple[int, str]:
     return response.status, text
 
 
-def check_queries(handler, queries: List[str]):
-    async def checker(request: Request, *args, **kwargs):
-        for query in queries:
-            if request.args.get(query) is None:
-                return json(
-                    body={"error": f'url argument "{query}" not defined'},
-                    status=HTTPStatus.BAD_REQUEST,
-                )
-        response = await handler(request, *args, **kwargs)
-        return response
-
-    return checker
+def clear_title(title: str) -> str:
+    from_items = ["torrent", "web-dl", "download"]
+    new_title = title.strip().lower()
+    for item in from_items:
+        new_title = new_title.split(item)[0]
+    new_title = new_title.strip().title()
+    return new_title

@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 from ..models.classes import Extractor
 from ..models.responses import DownloadResult, Link, SearchResult
-from ..utils import HTTPBadStatusCode, http_get
+from ..utils import HTTPBadStatusCode, http_get, clear_title
 
 
 class MaisFilmesESeries(Extractor):
@@ -21,7 +21,7 @@ class MaisFilmesESeries(Extractor):
         soup = BeautifulSoup(html, "lxml")
         for c in soup.select('div[class="post"]'):
             yield SearchResult(
-                title=c.find("div", class_="titulo_post").text.strip(),
+                title=clear_title(c.find("div", class_="titulo_post").text.strip()),
                 url=c.find("a").get("href"),
                 thumbnail=c.find("img").get("src"),
                 extractor=self.id,
@@ -41,7 +41,7 @@ class MaisFilmesESeries(Extractor):
             title = link.text.strip()
             url = link.get("href")
             thumbnail = raw_result.find("img").get("src")
-            results.append(SearchResult(title, url, self.id, thumbnail))
+            results.append(SearchResult(clear_title(title), url, self.id, thumbnail))
 
         return results
 

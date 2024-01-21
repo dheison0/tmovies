@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 from ..models.classes import Extractor
 from ..models.responses import DownloadResult, Link, SearchResult
-from ..utils import HTTPBadStatusCode, http_get
+from ..utils import HTTPBadStatusCode, http_get, clear_title
 
 
 class BoiTorrent(Extractor):
@@ -17,12 +17,6 @@ class BoiTorrent(Extractor):
         status, html = await http_get(self.website)
         if status != 200:
             raise HTTPBadStatusCode(status)
-
-        def clear_title(t):
-            title = t.strip()
-            pieces = title.lower().split()
-            torrent_location = pieces.index("torrent")
-            return " ".join(title.split()[:torrent_location])
 
         soup = BeautifulSoup(html, "lxml")
         for c in soup.select('li[class="capa_lista text-center"]'):
@@ -48,7 +42,7 @@ class BoiTorrent(Extractor):
             title = "-".join(raw_title.split("-")[:-1]).strip()
             url = raw_result.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
-            results.append(SearchResult(title, url, self.id, thumbnail))
+            results.append(SearchResult(clear_title(title), url, self.id, thumbnail))
 
         return results
 

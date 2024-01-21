@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup, NavigableString
 
 from ..models.classes import Extractor
 from ..models.responses import DownloadResult, Link, SearchResult
-from ..utils import HTTPBadStatusCode, http_get
+from ..utils import HTTPBadStatusCode, http_get, clear_title
 
 
 class NickFilmes(Extractor):
@@ -21,7 +21,7 @@ class NickFilmes(Extractor):
         soup = BeautifulSoup(html, "lxml")
         for c in soup.find_all("article", class_="elementor-post"):
             yield SearchResult(
-                title=self.clean_title(
+                title=clear_title(
                     c.find("h3", class_="elementor-post__title").text
                 ),
                 url=c.find("a").get("href"),
@@ -38,10 +38,9 @@ class NickFilmes(Extractor):
         results = []
         for raw_result in raw_results:
             raw_title = raw_result.find("h3", class_="elementor-post__title")
-            title = self.clean_title(raw_title.text)
             url = raw_title.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
-            results.append(SearchResult(title, url, self.id, thumbnail))
+            results.append(SearchResult(clear_title(raw_title.text), url, self.id, thumbnail))
 
         return results
 
@@ -101,9 +100,3 @@ class NickFilmes(Extractor):
             i += 2
         return list(links.values())
 
-    def clean_title(self, title):
-        title = title.strip()
-        title_parts = title.lower().split()
-        torrent_position = title_parts.index("torrent")
-        new_title = title.split()[:torrent_position]
-        return " ".join(new_title)
