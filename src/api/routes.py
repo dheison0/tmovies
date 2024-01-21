@@ -41,7 +41,7 @@ async def recommendations(request: Request):
 @bp.route("/search/<extractor:str>", name="Search from specific")
 async def search(request: Request, extractor: str = ""):
     query = request.args.get("q")
-    if query is None or query.strip() == "":
+    if query is None or not query.strip():
         return json(
             {"error": "invalied query(q) parameter"}, status=HTTPStatus.BAD_REQUEST
         )
@@ -54,19 +54,33 @@ async def search(request: Request, extractor: str = ""):
         search_extractors = extractors.pool.get_all_extractors()
 
     response = await request.respond()
+    sent_titles = set()
+
+    def filter_unrepeated(results):
+        unrepeated = []
+        for r in results:
+            old_size = len(sent_titles)
+            sent_titles.add(r.title.lower())
+            new_size = len(sent_titles)
+            if old_size < new_size:
+                unrepeated.append(r)
+        return unrepeated
+    
+    def dataclass2bytes(data):
+        data_dict = asdict(data)
+        data_json = json_dump(data_dict)
+        return data_json.encode()
+
 
     async def searcher(e):
         extractor = extractors.pool.get_extractor(e.id)
         try:
-            result = await extractor().search(query)
+            results = await extractor().search(query)
         except Exception as error:
             logging.error(f"Failed to search for '{query}' on '{e.id}'", error)
             return
-        await response.send(
-            json_dump(
-                {"extractor": extractor.title, "results": [asdict(r) for r in result]}
-            )
-        )
+        unrepeated = filter_unrepeated(results)
+        await gather(*[response.send(dataclass2bytes(i)) for i in unrepeated])
 
     searchers = [searcher(e) for e in search_extractors]
     await gather(*searchers)
