@@ -13,13 +13,10 @@ class SearchResult:
 
     def __post_init__(self):
         parsed_url = urlparse(self.url)
-        params = urlencode(
-            {
-                "path": parsed_url.path
-                + (f"?{parsed_url.params}" if parsed_url.params else "")
-            }
-        )
-        self.next = f"/download/{self.extractor}?{params}"
+        params = {"path": parsed_url.path}
+        if parsed_url.params:
+            params.path += f"?{parsed_url.params}"
+        self.next = f"/download/{self.extractor}?{urlencode(params)}"
 
 
 @dataclass(slots=True)
@@ -34,3 +31,9 @@ class DownloadResult:
     links: List[Link]
     thumbnail: Optional[str]
     sinopse: Optional[str]
+
+
+@dataclass(slots=True)
+class Recommendation:
+    title: str
+    thumbnail: str

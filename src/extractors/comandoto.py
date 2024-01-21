@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup, NavigableString
 
-from ..utils import HTTPBadStatusCode, http_get
-from .models import DownloadResult, Extractor, ExtractorSearchResult, Link, SearchResult
+from ..utils import HTTPBadStatusCode, http_get, clear_title
+from ..models.responses import DownloadResult, Link, SearchResult
+from ..models.classes import Extractor
+from urllib.parse import urljoin
 
 
 class ComandoTo(Extractor):
@@ -10,88 +12,39 @@ class ComandoTo(Extractor):
     description = "Baixe Filmes e Series torrent HD Lançamentos."
     website = "https://comando.la"
 
-    async def recommendations(self) -> list[SearchResult]:
-        status, html = await http_get(self.website)
-        if status != 200:
-            raise HTTPBadStatusCode(status)
-
-        soup = BeautifulSoup(html, "lxml")
-        return [
-            SearchResult(
-                title=c.find("h2", class_="entry-title").text.strip(),
-                url=c.find("a").get("href"),
-                thumbnail=c.find("img").get("src").split()[0],
-                extractor_id=self.id,
-            )
-            for c in soup.find_all(
-                "article", class_="blog-view post type-post has-post-thumbnail"
-            )
-        ]
-
-    async def search(self, query: str, page: int = 1) -> ExtractorSearchResult:
-        status, html = await http_get(f"{self.website}/?s={query}")
+    async def search(self, query: str, page: int = 1) -> list[SearchResult]:
+        status, html = await http_get(f"{self.website}/page/{page}/?s={query}")
         if status != 200:
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")
-        raw_results = soup.find_all("div", class_="elementor-post__card")
+        raw_results = soup.select("article.blog-view")
         results = []
         for raw_result in raw_results:
-            raw_title = raw_result.find("h3", class_="elementor-post__title")
-            title = raw_title.text.strip()
+            raw_title = raw_result.find("h2", class_="entry-title")
+            title = clear_title(raw_title.text.strip())
             url = raw_title.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
             results.append(SearchResult(title, url, self.id, thumbnail))
-        return ExtractorSearchResult(page=page, has_more=False, results=results)
+        return results
 
-    async def download(self, url: str) -> DownloadResult:
-        status, html = await http_get(url)
+    async def download(self, path: str) -> DownloadResult:
+        status, html = await http_get(urljoin(self.website, path))
         if status != 200:
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")
-        title = soup.find(
-            "h2", class_="elementor-heading-title elementor-size-default"
-        ).text.strip()
-        sinopse_container = soup.find_all("span", style="color: #0000ff;")[-1].parent
-        sinopse = sinopse_container.text.replace(
-            sinopse_container.find("span").text, ""
-        ).strip()
-        thumbnail = soup.select_one(".elementor-widget-theme-post-content img").get(
-            "data-src"
-        )
+        title = soup.select_one("h1.entry-title").text.strip()
+        scontainer = soup.select_one(".entry-content").select("p")[1]
+        sinopse = scontainer.text.replace(scontainer.find("strong").text, "").strip()
+        thumbnail = soup.select_one("img.size-full").get("src")
         links = self.extract_links(soup)
         return DownloadResult(title, links, thumbnail, sinopse)
 
     def extract_links(self, soup: NavigableString):
-        # Disclaimer: If the title is repeated it's because the second one is with captions instead of multi-language
-
-        links = {}
-        tag_list = soup.select('p[style="text-align: center;"]')
-
-        if tag_list[0].find("a"):
-            # This will be used if you're downloading a TV show
-            for t in tag_list:
-                if not t.find("a"):
-                    continue
-                title = t.text.strip()
-                magnet = t.find("a").get("href")
-                if not magnet:
-                    continue
-                elif title in links:
-                    title += " [Legendado]"
-                links[title] = Link(title, magnet)
-            return list(links.values())
-
-        # How this part works:
-        #  As the website won't create a container for every single link and their titles,
-        #  it is needed that you step over "p" tags, I have noted that the first tag is the
-        #  title of the link and the second is a container for the button, so I step over
-        #  two tags per iteration, extracting content of their and passing away
-        i = 0
-        while len(tag_list) - i >= 2:
-            title = tag_list[i].text.strip()
-            magnet = tag_list[i + 1].find("a").get("href")
-            if title in links:
-                title += " [Legendado]"
-            links[title] = Link(title, magnet)
-            i += 2
-        return list(links.values())
+        buttons = soup.select_one(".entry-content").select("p a")
+        links = []
+        for button in buttons:
+            title = button.get("alt")
+            if not title:
+                title = button.parent.text.replace(button.text, "").strip()
+            links.append(Link(title, magnet=button.get("href")))
+        return [l for l in links if "magnet:" in l.magnet]

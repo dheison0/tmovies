@@ -1,5 +1,5 @@
 from ..models.classes import Extractor
-from . import boitorrent, maisfilmeseseries, nickfilmes
+from . import boitorrent, maisfilmeseseries, nickfilmes, comandoto
 
 
 class ExtractorNotFound(Exception):
@@ -27,4 +27,4 @@ pool = Pool()
 pool.add_extractor(boitorrent.BoiTorrent)
 pool.add_extractor(nickfilmes.NickFilmes)
 pool.add_extractor(maisfilmeseseries.MaisFilmesESeries)
-# pool.add_extractor(comandoto.ComandoTo)
+pool.add_extractor(comandoto.ComandoTo)

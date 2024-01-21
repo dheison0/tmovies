@@ -13,20 +13,6 @@ class BoiTorrent(Extractor):
     description = "Download Lista de Últimos Lançamentos por torrent grátis com qualidade e velocidade diretamente pelo magnet link (Boi Torrent)."
     website = "https://boitorrent.com"
 
-    async def recommendations(self):
-        status, html = await http_get(self.website)
-        if status != 200:
-            raise HTTPBadStatusCode(status)
-
-        soup = BeautifulSoup(html, "lxml")
-        for c in soup.select('li[class="capa_lista text-center"]'):
-            yield SearchResult(
-                title=clear_title(c.find("h2").text),
-                url=c.find("a").get("href"),
-                thumbnail=c.find("img").get("src"),
-                extractor=self.id,
-            )
-
     async def search(self, query: str, page: int = 1) -> SearchResult:
         status, html = await http_get(
             f"{self.website}/torrent-{query.replace(' ', '_')}/{page}"

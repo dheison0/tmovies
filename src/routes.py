@@ -3,38 +3,22 @@ from asyncio import gather
 from dataclasses import asdict
 from http import HTTPStatus
 from json import dumps as json_dump
+from . import recommendator
 
 from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import json
 
-from .. import extractors
+from . import extractors
 
 bp = Blueprint("v2-routes")
 
 
 @bp.route("/recommends")
 async def recommendations(request: Request):
-    all_extractors = extractors.pool.get_all_extractors()
     response = await request.respond()
-
-    sent_titles = set()
-
-    async def extract(extractor):
-        try:
-            async for r in extractor().recommendations():
-                old_size = len(sent_titles)
-                sent_titles.add(r.title.lower())
-                new_size = len(sent_titles)
-                if old_size != new_size:
-                    await response.send(json_dump(asdict(r)))
-        except Exception as error:
-            logging.error(
-                f"Error retrieving recommendations from {extractor.title}",
-                error,
-            )
-
-    await gather(*[extract(e) for e in all_extractors])
+    async for r in recommendator.recommends():
+        await response.send(json_dump(asdict(r)).encode())
 
 
 @bp.route("/search", name="Search from all")
@@ -65,12 +49,11 @@ async def search(request: Request, extractor: str = ""):
             if old_size < new_size:
                 unrepeated.append(r)
         return unrepeated
-    
+
     def dataclass2bytes(data):
         data_dict = asdict(data)
         data_json = json_dump(data_dict)
         return data_json.encode()
-
 
     async def searcher(e):
         extractor = extractors.pool.get_extractor(e.id)

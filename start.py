@@ -4,7 +4,7 @@ from os import cpu_count, environ
 
 from sanic import Sanic
 
-from src.api.routes import bp as api_routes
+from src.routes import bp as api_routes
 
 server = Sanic("TMovies")
 server.blueprint(api_routes)

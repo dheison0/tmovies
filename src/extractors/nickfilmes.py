@@ -1,5 +1,5 @@
 from urllib.parse import urljoin
-
+import logging
 from bs4 import BeautifulSoup, NavigableString
 
 from ..models.classes import Extractor
@@ -13,22 +13,6 @@ class NickFilmes(Extractor):
     description = "O Site NickFilmes.net é apenas um agregador de links, nenhum arquivo está hospedado sob nosso domínio."
     website = "https://nickfilmes.net"
 
-    async def recommendations(self):
-        status, html = await http_get(self.website)
-        if status != 200:
-            raise HTTPBadStatusCode(status)
-
-        soup = BeautifulSoup(html, "lxml")
-        for c in soup.find_all("article", class_="elementor-post"):
-            yield SearchResult(
-                title=clear_title(
-                    c.find("h3", class_="elementor-post__title").text
-                ),
-                url=c.find("a").get("href"),
-                thumbnail=c.find("img").get("data-srcset").split()[0],
-                extractor=self.id,
-            )
-
     async def search(self, query: str, page: int = 1) -> list[SearchResult]:
         status, html = await http_get(f"{self.website}/?s={query}")
         if status != 200:
@@ -40,7 +24,9 @@ class NickFilmes(Extractor):
             raw_title = raw_result.find("h3", class_="elementor-post__title")
             url = raw_title.find("a").get("href")
             thumbnail = raw_result.find("img").get("src")
-            results.append(SearchResult(clear_title(raw_title.text), url, self.id, thumbnail))
+            results.append(
+                SearchResult(clear_title(raw_title.text), url, self.id, thumbnail)
+            )
 
         return results
 
@@ -99,4 +85,3 @@ class NickFilmes(Extractor):
             links[title] = Link(title, magnet)
             i += 2
         return list(links.values())
-
