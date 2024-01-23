@@ -1,9 +1,10 @@
+from urllib.parse import urljoin
+
 from bs4 import BeautifulSoup, NavigableString
 
-from ..utils import HTTPBadStatusCode, http_get, clear_title
-from ..models.responses import DownloadResult, Link, SearchResult
 from ..models.classes import Extractor
-from urllib.parse import urljoin
+from ..models.responses import DownloadResult, Link, SearchResult
+from ..utils import HTTPBadStatusCode, clear_title, http_get
 
 
 class ComandoTo(Extractor):

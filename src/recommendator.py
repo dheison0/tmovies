@@ -1,6 +1,7 @@
-from .models.responses import Recommendation
-from .utils import http_get, HTTPBadStatusCode, clear_title
 from bs4 import BeautifulSoup
+
+from .models.responses import Recommendation
+from .utils import HTTPBadStatusCode, clear_title, http_get
 
 RECOMMENDATION_PAGE = "https://comando.la"
 

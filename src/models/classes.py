@@ -1,4 +1,4 @@
-from typing import AsyncGenerator, Callable
+from typing import Callable
 
 from .responses import DownloadResult, SearchResult
 

@@ -1,5 +1,5 @@
 from ..models.classes import Extractor
-from . import boitorrent, maisfilmeseseries, nickfilmes, comandoto
+from . import boitorrent, comandoto, maisfilmeseseries, nickfilmes
 
 
 class ExtractorNotFound(Exception):
