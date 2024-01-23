@@ -1,9 +1,8 @@
-from http import HTTPStatus
-from typing import List, Tuple
+import dataclasses
+import json
+from typing import Tuple
 
 from aiohttp import ClientSession
-from sanic.request import Request
-from sanic.response import json
 
 
 class HTTPBadStatusCode(Exception):
@@ -26,3 +25,9 @@ def clear_title(title: str) -> str:
         new_title = new_title.split(item)[0]
     new_title = new_title.strip().title()
     return new_title
+
+
+def dataclass2bytes(data) -> bytes:
+    data_dict = dataclasses.asdict(data)
+    data = json.dumps(data_dict)
+    return data.encode()
