@@ -70,6 +70,8 @@ async def download(request: Request, extractor_id: str):
             status=HTTPStatus.NOT_FOUND,
         )
     path = request.args.get("path")
+    if not path:
+        return json({"error": "arg 'path' is empty"})
     try:
         result = await extractor().download(path)
     except Exception as exception:
