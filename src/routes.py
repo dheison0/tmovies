@@ -15,10 +15,9 @@ bp = Blueprint("v2-routes")
 
 
 @bp.route("/recommends")
-async def recommendations(request: Request):
-    response = await request.respond()
-    async for r in recommendator.recommends():
-        await response.send(json_dump(asdict(r)).encode())
+async def recommendations(_):
+    recommends = await recommendator.recommends()
+    return json([asdict(r) for r in recommends])
 
 
 @bp.route("/search", name="Search from all")

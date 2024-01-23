@@ -11,8 +11,12 @@ async def recommends() -> list[Recommendation]:
         raise HTTPBadStatusCode(status)
 
     soup = BeautifulSoup(html, "lxml")
+    results = []
     for c in soup.select("article.blog-view"):
-        yield Recommendation(
-            title=clear_title(c.find("h2", class_="entry-title").text.strip()),
-            thumbnail=c.find("img").get("src").split()[0],
+        results.append(
+            Recommendation(
+                title=clear_title(c.find("h2", class_="entry-title").text.strip()),
+                thumbnail=c.find("img").get("src").split()[0],
+            )
         )
+    return results
