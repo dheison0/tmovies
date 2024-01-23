@@ -12,17 +12,19 @@ class HTTPBadStatusCode(Exception):
 
 async def http_get(url: str, params: dict = {}) -> Tuple[int, str]:
     session = ClientSession()
-    response = await session.get(url, params=params, timeout=30)
-    text = await response.text()
-    await session.close()
+    try:
+        response = await session.get(url, params=params, timeout=30)
+        text = await response.text()
+    finally:
+        await session.close()
     return response.status, text
 
 
 def clear_title(title: str) -> str:
-    from_items = ["torrent", "web-dl", "download"]
+    to_remove = ["torrent", "web-dl", "download"]
     new_title = title.strip().lower()
-    for item in from_items:
-        new_title = new_title.split(item)[0]
+    for remove in to_remove:
+        new_title = new_title.split(remove)[0]
     new_title = new_title.strip().title()
     return new_title
 
