@@ -42,46 +42,23 @@ class NickFilmes(Extractor):
         sinopse = sinopse_container.text.replace(
             sinopse_container.find("span").text, ""
         ).strip()
-        thumbnail = soup.select_one(".elementor-widget-theme-post-content img").get(
-            "data-src"
-        )
+        thumbnail = soup.find("meta", property="og:image").get("content")
+        if not thumbnail:
+            thumbnail = soup.select_one("p img.size-full").get("src")
         links = self.extract_links(soup)
         return DownloadResult(title, links, thumbnail, sinopse)
 
-    def extract_links(self, soup: NavigableString):
-        # Disclaimer: If the title is repeated it's because the second one is with captions instead of multi-language
-
-        links = {}
-        tag_list = soup.select('p[style="text-align: center;"]')
-
-        def clean_title(t):
-            return " ".join(t.strip().split())
-
-        if tag_list[0].find("a"):
-            # This will be used if you're downloading a TV show
-            for t in tag_list:
-                if not t.find("a"):
-                    continue
-                title = clean_title(t.text)
-                magnet = t.find("a").get("href")
-                if not magnet:
-                    continue
-                elif title in links:
-                    title += " [Legendado]"
-                links[title] = Link(title, magnet)
-            return list(links.values())
-
-        # How this part works:
-        #  As the website won't create a container for every single link and their titles,
-        #  it is needed that you step over "p" tags, I have noted that the first tag is the
-        #  title of the link and the second is a container for the button, so I step over
-        #  two tags per iteration, extracting content of their and passing away
-        i = 0
-        while len(tag_list) - i >= 2:
-            title = clean_title(tag_list[i].text)
-            magnet = tag_list[i + 1].find("a").get("href")
-            if title in links:
-                title += " [Legendado]"
-            links[title] = Link(title, magnet)
-            i += 2
-        return list(links.values())
+    def extract_links(self, soup: NavigableString) -> list[Link]:
+        buttons = soup.select("a")
+        link_titles = []
+        links = []
+        for button in buttons:
+            url = button.get("href")
+            if not url or "magnet:" not in url:
+                continue
+            title = button.text.strip()
+            if title.lower() in link_titles or "tgx" in url.lower():
+                title += " [LEGENDADO]"
+            links.append(Link(title, magnet=url))
+            link_titles.append(title.lower())
+        return links
