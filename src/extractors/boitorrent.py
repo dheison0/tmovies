@@ -43,6 +43,6 @@ class BoiTorrent(Extractor):
         thumbnail = soup.find("img", class_="img-responsive capa_imagem").get("src")
         links = [
             Link(a.text.strip(), a.get("href"))
-            for a in soup.select('ul[class="list-group"] a')
+            for a in soup.select("a.list-group-item")
         ]
         return DownloadResult(title, links, thumbnail, sinopse)
