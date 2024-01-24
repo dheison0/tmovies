@@ -74,13 +74,15 @@ async def download(request: Request, extractor_id: str):
         return json({"error": "arg 'path' is empty"})
     try:
         result = await extractor().download(path)
+    except TimeoutError:
+        return json(
+            {"error": f"failed to reach {extractor.title} website"},
+            HTTPStatus.REQUEST_TIMEOUT,
+        )
     except Exception as exception:
         error_message = (
             f"Error getting download information from {extractor.title} {path}"
         )
         logging.error(error_message, exception)
-        return json(
-            body={"error": f"{error_message}: {str(exception)}"},
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-        )
+        return json({"error": error_message}, HTTPStatus.INTERNAL_SERVER_ERROR)
     return json(body=asdict(result), status=HTTPStatus.OK)
