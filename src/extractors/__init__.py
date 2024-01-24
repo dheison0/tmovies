@@ -20,7 +20,7 @@ class Pool:
         raise ExtractorNotFound(id)
 
     def get_all_extractors(self) -> list[Extractor]:
-        return self.extractors.values()
+        return list(self.extractors.values())
 
 
 pool = Pool()
