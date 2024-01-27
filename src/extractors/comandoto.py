@@ -43,11 +43,35 @@ class ComandoTo(Extractor):
         return DownloadResult(title, links, thumbnail, sinopse)
 
     def extract_links(self, soup: NavigableString):
-        buttons = soup.select_one(".entry-content").select("p a")
         links = []
+        titles = []
+        magnets = []
+
+        def mod_and_add_link(link):
+            if "magnet:" not in link.magnet or link.magnet in magnets:
+                return
+            if link.title.lower() in titles:
+                link.title += " [LEGENDADO]"
+            titles.append(link.title.lower())
+            magnets.append(link.magnet)
+            links.append(link)
+
+        # With custom buttons
+        buttons = soup.select("div.entry-content.cf p a.customButton")
         for button in buttons:
-            title = button.get("alt")
-            if not title:
-                title = button.parent.text.replace(button.text, "").strip()
-            links.append(Link(title, magnet=button.get("href")))
-        return [l for l in links if "magnet:" in l.magnet]
+            title = button.parent.find("strong").text.strip()
+            url = button.get("href")
+            mod_and_add_link(Link(title, url))
+
+        # With button bars
+        buttons_bars = soup.select(
+            'div.entry-content.cf p[style="text-align: center;"] b'
+        )
+        for bar in buttons_bars:
+            base_title = " ".join([b.text.strip() for b in bar.parent.select("b")])
+            for button in bar.parent.select("a"):
+                button_title = button.text.strip()
+                url = button.get("href")
+                mod_and_add_link(Link(f"{base_title} {button_title}", url))
+
+        return links
