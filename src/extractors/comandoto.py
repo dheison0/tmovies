@@ -34,9 +34,11 @@ class ComandoTo(Extractor):
             raise HTTPBadStatusCode(status)
         soup = BeautifulSoup(html, "lxml")
         title = soup.select_one("h1.entry-title").text.strip()
-        scontainer = soup.select_one(".entry-content").select("p")[1]
-        sinopse = scontainer.text.replace(scontainer.find("strong").text, "").strip()
-        thumbnail = soup.select_one("img.size-full").get("src")
+        sinopse = soup.select(
+            'div.entry-content.cf p strong span[style="color: #0000ff;"]'
+        )[-1].parent.parent.text.strip()
+        sinopse = " ".join(sinopse.split()[1:])
+        thumbnail = soup.select_one("div.entry-content.cf p img").get("src")
         links = self.extract_links(soup)
         return DownloadResult(title, links, thumbnail, sinopse)
 
